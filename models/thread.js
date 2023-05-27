@@ -1,31 +1,30 @@
-const mongoose = require('mongoose');
-const Reply    = require('./reply.js');
+const mongoose = require("mongoose");
+
 const Schema = mongoose.Schema;
+const ObjectId = Schema.ObjectId;
 
-const threadSchema = new Schema({
-  _id        : Schema.Types.ObjectId,
-  text       : { type: String, required: true },
-  password   : { type: String, required: true },
-  created_on : { type: Date, default: Date.now },
-  bumped_on  : { type: Date, default: Date.now },
-  reported   : { type: Boolean, default: false },
-  replies    : [{ type: Schema.Types.ObjectId, ref: 'Reply' }]
-});
+const ThreadSchema = new Schema(
+  {
+    board: { type: String, required: true },
+    replies: [{ type: ObjectId, ref: "Reply" }],
+    text: { type: String, required: true },
+    delete_password: { type: String, required: true },
+    reported: { type: Boolean, default: false },
+    bumped_on: { type: Date, default: Date.now },
+    created_on: { type: Date, default: Date.now },
+  },
+  {
+    // timestamps: { createdAt: "created_on", updatedAt: "bumped_on" },
+    versionKey: false
+  }
+);
 
-threadSchema.post('remove', function(doc) {
-  Reply.deleteMany({
-    _id: { "$in": doc.replies }
-  }, {}, function(err) {});
-});
+ThreadSchema.methods.toJSON = function () {
+  var obj = this.toObject();
+  delete obj.delete_password;
+  delete obj.reported;
+  delete obj.board;
+  return obj
+}
 
-/* 
-  There is actually no reason to reference the replies
-  instead of embbeding it inside the thread. A reply
-  is forever within one single thread, not ever being
-  used in a different thread. Embedding would reduce
-  the amount of queries to find a specific reply,
-  improving the overall application performance.
-  The same applies for referencing threads inside a board.
-*/
-
-module.exports = mongoose.model('Thread', threadSchema);
+module.exports = mongoose.model("Thread", ThreadSchema);

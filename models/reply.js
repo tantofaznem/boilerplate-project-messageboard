@@ -1,12 +1,28 @@
-const mongoose = require('mongoose');
+const mongoose = require("mongoose");
+
 const Schema = mongoose.Schema;
+const ObjectId = Schema.ObjectId;
 
-const replySchema = new Schema({
-  _id        : Schema.Types.ObjectId,
-  text       : { type: String, required: true, maxlength: 3000 },
-  password   : { type: String, required: true, minlength: 4, maxlength: 15 },
-  created_on : { type: Date, default: Date.now },
-  reported   : { type: Boolean, default: false }
-});
+const ReplySchema = new Schema(
+  {
+    thread_id: { type: ObjectId, ref: "Thread" },
+    text: { type: String, required: true },
+    delete_password: { type: String, required: true  },
+    reported: { type: Boolean, default: false },
+    created_on: { type: Date, default: Date.now },
+  },
+  {
+    // timestamps: { createdAt: "created_on" },
+    versionKey: false
+  }
+);
 
-module.exports = mongoose.model('Reply', replySchema);
+ReplySchema.methods.toJSON = function () {
+  var obj = this.toObject()
+  delete obj.delete_password;
+  delete obj.reported;
+  return obj
+}
+
+
+module.exports = mongoose.model("Reply", ReplySchema);
