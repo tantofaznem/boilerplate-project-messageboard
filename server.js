@@ -1,21 +1,23 @@
 'use strict';
-require('dotenv').config();
-const express     = require('express');
-const bodyParser  = require('body-parser');
-const cors        = require('cors');
 
-const apiRoutes         = require('./routes/api.js');
-const fccTestingRoutes  = require('./routes/fcctesting.js');
-const runner            = require('./test-runner');
+var express     = require('express');
+var bodyParser  = require('body-parser');
+var expect      = require('chai').expect;
+var cors        = require('cors');
+var helmet      = require('helmet');
 
-const app = express();
+var apiRoutes         = require('./routes/api.js');
+var fccTestingRoutes  = require('./routes/fcctesting.js');
+var runner            = require('./test-runner');
 
-let helmet = require("helmet");
+var app = express();
 
-app.use(helmet.frameguard({action: "sameorigin"}));
-app.use(helmet.dnsPrefetchControl({allow: false}));
-app.use(helmet.referrerPolicy({policy: "same-origin"}));
+require('./models/board.js');
 
+// Setup HelmetJS:
+app.use(helmet.frameguard({ action: 'deny' }));
+app.use(helmet.dnsPrefetchControl());
+app.use(helmet.referrerPolicy({ policy: 'same-origin' }))
 
 app.use('/public', express.static(process.cwd() + '/public'));
 
@@ -23,8 +25,6 @@ app.use(cors({origin: '*'})); //For FCC testing purposes only
 
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
-
-
 
 //Sample front-end
 app.route('/b/:board/')
@@ -48,6 +48,9 @@ fccTestingRoutes(app);
 //Routing for API 
 apiRoutes(app);
 
+//Sample Front-end
+
+    
 //404 Not Found Middleware
 app.use(function(req, res, next) {
   res.status(404)
